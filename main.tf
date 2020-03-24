@@ -134,7 +134,7 @@ resource "google_compute_health_check" "ssl" {
 
   ssl_health_check {
     port         = var.health_check["port"]
-    host         = var.health_check["host"]
+    request      = var.health_check["request"]
     response     = var.health_check["response"]
     port_name    = var.health_check["port_name"]
     proxy_header = var.health_check["proxy_header"]
