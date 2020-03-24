@@ -56,9 +56,9 @@ resource "google_compute_region_backend_service" "default" {
     }
   }
   health_checks = flatten([
-    values(google_compute_health_check.tcp)[*].self_link,
-    values(google_compute_health_check.http)[*].self_link,
-    values(google_compute_health_check.https)[*].self_link,
+    [for hc in google_compute_health_check.tcp: hc.self_link],
+    [for hc in google_compute_health_check.http: hc.self_link],
+    [for hc in google_compute_health_check.https: hc.self_link],
   ])
 }
 
