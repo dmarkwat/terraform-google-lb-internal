@@ -55,7 +55,11 @@ resource "google_compute_region_backend_service" "default" {
       description = lookup(backend.value, "description", null)
     }
   }
-  health_checks = [var.health_check["type"] == "tcp" ? google_compute_health_check.tcp[0].self_link : google_compute_health_check.http[0].self_link]
+  health_checks = flatten([
+    values(google_compute_health_check.tcp)[*].self_link,
+    values(google_compute_health_check.http)[*].self_link,
+    values(google_compute_health_check.https)[*].self_link,
+  ])
 }
 
 resource "google_compute_health_check" "tcp" {
@@ -88,6 +92,26 @@ resource "google_compute_health_check" "http" {
   unhealthy_threshold = var.health_check["unhealthy_threshold"]
 
   http_health_check {
+    port         = var.health_check["port"]
+    request_path = var.health_check["request_path"]
+    host         = var.health_check["host"]
+    response     = var.health_check["response"]
+    port_name    = var.health_check["port_name"]
+    proxy_header = var.health_check["proxy_header"]
+  }
+}
+
+resource "google_compute_health_check" "https" {
+  count   = var.health_check["type"] == "https" ? 1 : 0
+  project = var.project
+  name    = "${var.name}-hc-https"
+
+  timeout_sec         = var.health_check["timeout_sec"]
+  check_interval_sec  = var.health_check["check_interval_sec"]
+  healthy_threshold   = var.health_check["healthy_threshold"]
+  unhealthy_threshold = var.health_check["unhealthy_threshold"]
+
+  https_health_check {
     port         = var.health_check["port"]
     request_path = var.health_check["request_path"]
     host         = var.health_check["host"]

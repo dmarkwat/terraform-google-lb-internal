@@ -47,6 +47,20 @@ locals {
     request_path        = "/"
     host                = "1.2.3.4"
   }
+  https_health_check = {
+    type                = "https"
+    check_interval_sec  = 1
+    healthy_threshold   = 4
+    timeout_sec         = 1
+    unhealthy_threshold = 5
+    response            = ""
+    proxy_header        = "NONE"
+    port                = 8443
+    port_name           = "health-check-port"
+    request             = ""
+    request_path        = "/"
+    host                = "1.2.3.4"
+  }
 }
 
 resource "google_compute_network" "test" {
@@ -75,4 +89,18 @@ module "test_ilb" {
   target_tags  = ["target-tag-bar"]
   backends     = []
   health_check = local.health_check
+}
+
+module "test_ilb_https" {
+  source = "../../"
+  project      = var.project_id
+  network      = google_compute_network.test.name
+  subnetwork   = google_compute_subnetwork.test.name
+  region       = var.region
+  name         = local.resource_name
+  ports        = ["8080"]
+  source_tags  = ["source-tag-foo"]
+  target_tags  = ["target-tag-bar"]
+  backends     = []
+  health_check = local.https_health_check
 }
