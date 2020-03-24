@@ -59,6 +59,7 @@ resource "google_compute_region_backend_service" "default" {
     [for hc in google_compute_health_check.tcp: hc.self_link],
     [for hc in google_compute_health_check.http: hc.self_link],
     [for hc in google_compute_health_check.https: hc.self_link],
+    [for hc in google_compute_health_check.ssl: hc.self_link],
   ])
 }
 
@@ -114,6 +115,25 @@ resource "google_compute_health_check" "https" {
   https_health_check {
     port         = var.health_check["port"]
     request_path = var.health_check["request_path"]
+    host         = var.health_check["host"]
+    response     = var.health_check["response"]
+    port_name    = var.health_check["port_name"]
+    proxy_header = var.health_check["proxy_header"]
+  }
+}
+
+resource "google_compute_health_check" "ssl" {
+  count   = var.health_check["type"] == "ssl" ? 1 : 0
+  project = var.project
+  name    = "${var.name}-hc-ssl"
+
+  timeout_sec         = var.health_check["timeout_sec"]
+  check_interval_sec  = var.health_check["check_interval_sec"]
+  healthy_threshold   = var.health_check["healthy_threshold"]
+  unhealthy_threshold = var.health_check["unhealthy_threshold"]
+
+  ssl_health_check {
+    port         = var.health_check["port"]
     host         = var.health_check["host"]
     response     = var.health_check["response"]
     port_name    = var.health_check["port_name"]
